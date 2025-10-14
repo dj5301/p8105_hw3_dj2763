@@ -17,19 +17,33 @@ The Instacart dataset contains `r nrow(instacart)` observations and `r ncol(inst
 There are 15 variables in this dataset:
 
 order_id: order identifier
+
 product_id: product identifier
+
 add_to_cart_order: order in which each product was added to cart
+
 reordered: 1 if this prodcut has been ordered by this user in the past, 0 otherwise
+
 user_id: customer identifier
+
 eval_set: which evaluation set this order belongs in (Note that the data for use in this class is exclusively from the “train” eval_set)
+
 order_number: the order sequence number for this user (1=first, n=nth)
+
 order_dow: the day of the week on which the order was placed
+
 order_hour_of_day: the hour of the day on which the order was placed
+
 days_since_prior_order: days since the last order, capped at 30, NA if order_number=1
+
 product_name: name of the product
+
 aisle_id: aisle identifier
+
 department_id: department identifier
+
 aisle: the name of the aisle
+
 department: the name of the department
 
 ## Illustration
@@ -45,16 +59,20 @@ instacart |>
 This code is for the total number of unique aisles
 ```{r}
 
-instacart |> 
+aisle <- instacart |> 
   summarise(n_aisles = n_distinct(aisle)) |> 
   knitr::kable(col.names = c("Aisle"))
 ```
+There are `r aisle` unique aisles in the store
+
+This code is for the most popular merchandise
 ```{r}
 count_aisle <- instacart |> 
   count(aisle, sort = TRUE)
 
 count_aisle
 ```
+The most popular merchandise is `r instacart %>% count(aisle, sort = TRUE) %>% slice(1) %>% pull(aisle)`
 
 The plot of aisles with more than 10,000 items ordered
 ```{r}
@@ -95,9 +113,9 @@ instacart |>
     names_prefix = "Day_"
   ) |> 
   knitr::kable(digits = 2,
-               col.names = c("Product", paste("Day", 0:6)))
+               col.names = c("Product", paste("Weekday", 0:6)))
 ```
-## Final Explaination
+### Final Explaination
 `r n_distinct(instacart$aisle)` aisles are in the dataset, with the most orders coming from the
 `r instacart %>% count(aisle, sort = TRUE) %>% slice(1) %>% pull(aisle)` aisle.
 
@@ -171,10 +189,8 @@ Answer the question 116 observation included and the zip less than 10 obs
 ```{r}
 n_116 <- sum(zip_count$n_obs == 116)
 n_under10 <- sum(zip_count$n_obs < 10)
-n_116
-n_under10
 ```
-## Reason not 116
+#### Reason not 116
 - There are `r n_116` and `r n_under10` zip code in 116 observations and under 10 observations
 - ZIP codes rarely observed may represent areas newly added, discontinued, or sparsely populated
 - Those observed every month represent stable neighborhoods consistently tracked by Zillow
@@ -200,6 +216,9 @@ borough_year_wide <- borough_year_avg |>
 borough_year_wide
 ```
 
+**Comment**
+Between 2015 and 2024, rents across all New York City boroughs continued to rise, with a slight dip during the pandemic followed by a rapid rebound. Manhattan maintained the highest rents, and the Bronx saw the largest increases, demonstrating a strong recovery in housing demand and a narrowing of regional rent disparities.
+
 Plot rent changes for all years and ZIP zones
 ```{r}
 ggp_all_years <- final_tidy |>
@@ -221,7 +240,8 @@ ggp_all_years <- final_tidy |>
   viridis::scale_fill_viridis(discrete = TRUE)
 ggp_all_years
 ```
-### **Comment**
+
+**Comment**
 As seen in the figure, all five boroughs have rising rents. Manhattan has the highest yearly price range and rental price volatility. In 2021, Manhattan, Brooklyn, and Queens rental prices fell, perhaps due to the pandemic. After a downturn, recovery and growth occur. Staten Island has the fewest prices documented.
 
 Mapping ZIP-level rent distribution in 2023 (1st step)
@@ -247,7 +267,8 @@ box_2023 <- zip_2023 |>
   theme_minimal(base_size = 12)
 box_2023
 ```
-### **Comment**
+
+**Comment**
 Manhattan has the highest median rent and largest disparity. Other Manhattan ZIP codes with monthly rents above $5000 stand out. Brooklyn prices range widely but are modest. The Bronx, Queens, and Staten Island have stable median costs. The distribution is uneven, notably in Brooklyn and Manhattan.
 
 ### Save the plot
@@ -326,9 +347,10 @@ sex_edu_counts <- final_long |>
 knitr::kable(sex_edu_counts,
              caption = "Counts of Participants by Sex within Each Education Level")
 ```
-### **Comment**
-- Count table: This provides a visual representation of the gender breakdown by education level. If the sample size for a particular level is small, subsequent graphical interpretation should be cautious.
 
+**Comment**
+- Count table: This provides a visual representation of the gender breakdown by education level. If the sample size for a particular level is small, subsequent graphical interpretation should be cautious.
+- Overall, the distribution of participants across education levels appears roughly balanced by sex, with a slight male predominance at the “High School Equivalent” level. Participation tends to increase with education level, indicating a larger representation of individuals with more than high school education.
 
 Create the age distribution chart
 ```{r faceted by education, colored by gender}
@@ -343,7 +365,8 @@ age_dist_plot <- final_long |>
   theme(legend.position = "bottom")
 age_dist_plot
 ```
-### **Comment**
+
+**Comment**
 - Age distribution: Age structures often differ across education levels (e.g., those with higher education tend to be younger).
 - Men and women are equally represented in "Less than high school" and "High school equivalent" education levels. Above-high school graduates are younger and more male. Those without a high school diploma are older. This compares school performance across generations. Post-high school education has the most mixed-gender students.
 
@@ -365,7 +388,8 @@ overall_vs_age_plot <- overall_activity |>
   theme(legend.position = "bottom")
 overall_vs_age_plot
 ```
-### **Comment**
+
+**Comment**
 - Overall vs. Age: Overall activity generally decreases with age; within the same education level, the curves for both genders can reveal differences.
 - In the "High school equivalent" and "Less than high school" categories, the gender breakdown is somewhat even in terms of participant count. The average age of those with a bachelor's degree or more is lower, and there are more men among them. The average age of those with a high school diploma or less is higher. This demonstrates the academic achievements of many generations. More than half of the population have a bachelor's degree or higher.
 
@@ -387,7 +411,8 @@ minute_curve_plot <- minute_curves |>
   theme(legend.position = "bottom")
 minute_curve_plot
 ```
-### **Comment**
+
+**Comment**
 - 24-hour curve: Bi-modal activity is common (during daytime commuting and exercise periods), and the curve shape or peak timing may differ between education and gender.
 
 - All groups show a clear pattern: there is less activity between 0:00 and 6:00 at night and higher activity throughout the day. There is a lot of activity around midday to early afternoon. Compared to the other two groups, people with more than a high school education are a little more active and spend more time active during the day (around 7:00 a.m. to 11:00 p.m.). Across all educational levels, females demonstrate slightly increased activity during the late morning to early afternoon; nevertheless, overall, sex differences are relatively minor.
