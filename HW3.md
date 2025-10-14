@@ -867,7 +867,7 @@ ggsave("results/overall_vs_age.png", overall_vs_age_plot, width = 9, height = 3.
     ## `geom_smooth()` using formula = 'y ~ x'
 
 ``` r
-ggsave("results/24h_profiles.png", minute_curve_plot, width = 7, height = 8.5, dpi = 300)
+ggsave("results/24h_profiles.png", minute_curve_plot, width = 10, height = 6.5, dpi = 300)
 ```
 
     ## `geom_smooth()` using method = 'gam' and formula = 'y ~ s(x, bs = "cs")'
