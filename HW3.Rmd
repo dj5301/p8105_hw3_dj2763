@@ -122,58 +122,44 @@ instacart |>
 # Problem 2
 Import data and clean name
 ```{r}
-zip_data  <-
-  read_csv("data/Zip Codes.csv",na = c("NA",".","") ) |> 
-  janitor::clean_names()
-
-zip_zori_data  <-
-  read_csv("data/Zip_zori_uc_sfrcondomfr_sm_month_NYC.csv",na = c("NA",".","") ) |>
-  janitor::clean_names()
-```
-
-Initial data cleaning with 'borough' row added
-```{r}
-zip_data_1 <- zip_data |> 
-  mutate(zip_code = as.character(zip_code)) |> 
-  select(zip_code, county, neighborhood) |> 
-  arrange(zip_code, county) |> 
-  distinct(zip_code, county, neighborhood, .keep_all = TRUE) |> 
-  mutate(
-    borough = case_when(
-      county == "Bronx"    ~ "Bronx",
-      county == "Kings"    ~ "Brooklyn",
-      county == "New York" ~ "Manhattan",
-      county == "Queens"   ~ "Queens",
-      county == "Richmond" ~ "Staten Island",
-    )
-  )
-zip_data_1
-```
-
-Converted wide dataset to long dataset
-```{r}
-zip_zori_data_1 <- zip_zori_data |> 
+zip_zori_data = 
+  read_csv("data/Zip_zori_uc_sfrcondomfr_sm_month_NYC.csv")  |> 
   pivot_longer(
-    x2015_01_31:x2024_08_31,
-    names_to = "date",
-    values_to = "zori"
+    -(RegionID:CountyName),
+    names_to = "month",
+    values_to = "price") |> 
+  janitor::clean_names() |> 
+  rename(zip_code = region_name) |> 
+  mutate(
+    month = as_date(month),
+    year = floor_date(month, unit = "year"),
+    zip_code = as.numeric(zip_code)) |> 
+  select(-county_name)
+
+zip_data = 
+  read_csv("data/Zip Codes.csv",na = c("NA",".","") )  |> 
+  janitor::clean_names() |> 
+  filter(
+    !(zip_code == 10463 & county == "New York"),
+    !(zip_code == 11201 & county == "New York"))  |> 
+  mutate(
+    borough = case_match(
+      county,
+      "Bronx" ~ "Bronx",
+      "Kings" ~ "Brooklyn",
+      "New York" ~ "Manhattan",
+      "Queens" ~ "Queens",
+      "Richmond" ~ "Staten Island"
+    )
   ) |> 
-  mutate(date = ymd(str_remove(date, "^x"))) |> 
-  mutate(zip_code = as.character(region_name)) |> 
-  filter(!is.na(zori))
-zip_zori_data_1
+  select(zip_code, borough, neighborhood)
+
 ```
 
-Final data organization
+Final_tidy data
 ```{r}
-final_tidy <- zip_zori_data_1 |> 
-  left_join(zip_data_1, by = "zip_code") |> 
-
-  select(
-    zip_code, neighborhood, date, zori, 
-    everything()
-  ) |> 
-  arrange(zip_code, date)
+final_tidy<-
+  left_join(zip_zori_data, zip_data, by = "zip_code")
 final_tidy
 ```
 
@@ -198,9 +184,8 @@ n_under10 <- sum(zip_count$n_obs < 10)
 Calculate the average rent for each borough and year (1st step)
 ```{r}
 borough_year_avg <- final_tidy |>
-  mutate(year = lubridate::year(date)) |>
   group_by(borough, year) |>
-  summarize(avg_rent = mean(zori, na.rm = TRUE)) |>
+  summarize(avg_rent = mean(price, na.rm = TRUE)) |>
   arrange(borough, year) 
 borough_year_avg
 ```
@@ -222,8 +207,8 @@ Between 2015 and 2024, rents across all New York City boroughs continued to rise
 Plot rent changes for all years and ZIP zones
 ```{r}
 ggp_all_years <- final_tidy |>
-  ggplot(aes(x = date, y = zori, color = borough)) +
-  geom_line(aes(group = borough), alpha = 0.4) +
+  ggplot(aes(x = year, y = price, color = borough)) +
+  geom_line(aes(group = borough), alpha = 0.6) +
   geom_smooth(se = FALSE) +
   facet_wrap(. ~ borough, scales = "fixed", ncol = 3) +
   scale_x_date(
@@ -247,9 +232,9 @@ As seen in the figure, all five boroughs have rising rents. Manhattan has the hi
 Mapping ZIP-level rent distribution in 2023 (1st step)
 ```{r}
 zip_2023 <- final_tidy |>
-  filter(year(date) == 2023) |>
+  filter(year == "2023-01-01") |>
   group_by(borough, zip_code) |>
-  summarize(zip_avg_2023 = mean(zori, na.rm = TRUE)) 
+  summarize(zip_avg_2023 = mean(price, na.rm = TRUE)) 
 zip_2023
 ```
 
